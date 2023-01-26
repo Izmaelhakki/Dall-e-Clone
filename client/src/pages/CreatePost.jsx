@@ -17,44 +17,64 @@ function CreatePost() {
 
   const [loading, setloading] = useState(false);
 
-  const generateImage = async() => {
-    if(form.prompt){
+  const generateImage = async () => {
+    if (form.prompt) {
       try {
         setGeneratingImg(true);
-        const  response= await fetch('http://localhost:8080/api/v1/dalle',{
-          method:'POST',
-          headers:{
-            'Content-Type':'application/json',
+        const response = await fetch("http://localhost:8080/api/v1/dalle", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({prompt:form.prompt}),
-       })
+          body: JSON.stringify({ prompt: form.prompt }),
+        });
 
-       const data=await response.json();
-       console.log(data);
-       setForm({...form,photo:`data:image/jpeg;base64,${data.photo}`})
+        const data = await response.json();
+        console.log(data);
+        setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` });
       } catch (error) {
         alert(error);
-      }finally{
+      } finally {
         setGeneratingImg(false);
       }
-    }else{
-      console.log('Please enter a prompt');
+    } else {
+      console.log("Please enter a prompt");
     }
-
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (form.photo && form.prompt) {
+      setloading(true);
+      try {
+         const response = await fetch('http://localhost:8080/api/v1/post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(form)
+        });
+
+        await response.json();
+        navigate("/");
+      } catch (err) {
+        alert(err);
+      } finally {
+        setloading(false);
+      }
+    }else{
+      alert('Please enter a prompt and generate an Image')
+    }
+  };
 
   const handleChange = (e) => {
-    setForm({...form,[e.target.name]:e.target.value})
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSupriseMe = () => {
-    const randomPropmt=getRandomPrompt(form.prompt);
-    setForm({...form,prompt:randomPropmt})
+    const randomPropmt = getRandomPrompt(form.prompt);
+    setForm({ ...form, prompt: randomPropmt });
   };
-
-
 
   return (
     <section className='max-w-7x1 mx-auto'>
@@ -110,20 +130,29 @@ function CreatePost() {
           </div>
         </div>
 
-      <div className="mt*5 flex gap-5">
-          <button type="button" onClick={generateImage} className="text-white bg-green-700 font-medium rounded-md text-sm w-full sm:w-auto px5 py-2.5 text-center">
-            { generatingImg ? "Generating ...":"Generate"}
+        <div className='mt*5 flex gap-5'>
+          <button
+            type='button'
+            onClick={generateImage}
+            className='text-white bg-green-700 font-medium rounded-md text-sm w-full sm:w-auto px5 py-2.5 text-center'
+          >
+            {generatingImg ? "Generating ..." : "Generate"}
           </button>
-      </div>
+        </div>
 
-      <div className="mt-10">
-        <p className="mt-2 text-[#66r75] text-[14px]">Once you have created the image you wnat,you can share it with others in the community </p>
-      </div>
+        <div className='mt-10'>
+          <p className='mt-2 text-[#66r75] text-[14px]'>
+            Once you have created the image you want,you can share it with
+            others in the community{" "}
+          </p>
+        </div>
 
-    <button type="submit" className="mt-3 text-white bg-[#6469ff] font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center">
-   {loading ? "Sharing":"Share with the community"}
-   </button>
-
+        <button
+          type='submit'
+          className='mt-3 text-white bg-[#6469ff] font-medium rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center'
+        >
+          {loading ? "Sharing" : "Share with the community"}
+        </button>
       </form>
     </section>
   );
